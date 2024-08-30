@@ -32,7 +32,7 @@ pipeline {
 
         stage('Clone repository') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/hms-org/hms-backend-golang.git'
+                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/hms-org/hms-backend-go-gin.git'
             }
         }
 
