@@ -4,26 +4,21 @@ pipeline {
     environment {
         DOCKER_IMAGE_NAME = ""
         DEPLOY_PORT = ""
-        ENV_FILE = ""
     }
 
     stages {
         stage('Prepare') {
             steps {
                 script {
-                    env.BRANCH_NAME = 'dev'
                     if (env.BRANCH_NAME == 'dev') {
-                        DOCKER_IMAGE_NAME = "hms-backend-laravel-dev"
+                        DOCKER_IMAGE_NAME = "hms-backend-golang-dev"
                         DEPLOY_PORT = "8001"
-                        ENV_FILE = 'ENV_HMS_DEV_LARAVEL'
                     } else if (env.BRANCH_NAME == 'uat') {
-                        DOCKER_IMAGE_NAME = "hms-backend-laravel-uat"
+                        DOCKER_IMAGE_NAME = "hms-backend-golang-uat"
                         DEPLOY_PORT = "8002"
-                        ENV_FILE = 'ENV_HMS_UAT_LARAVEL'
                     } else if (env.BRANCH_NAME == 'prod') {
-                        DOCKER_IMAGE_NAME = "hms-backend-laravel-prod"
+                        DOCKER_IMAGE_NAME = "hms-backend-golang-prod"
                         DEPLOY_PORT = "8003"
-                        ENV_FILE = 'ENV_HMS_PROD_LARAVEL'
                     } else {
                         error("Unknown branch for deployment!")
                     }
@@ -37,20 +32,17 @@ pipeline {
 
         stage('Clone repository') {
             steps {
-                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/hms-org/hms-backend-laravel.git'
+                git branch: "${env.BRANCH_NAME}", url: 'https://github.com/hms-org/hms-backend-golang.git'
             }
         }
 
-        stage('Preparation Environment') {
+        stage('Build Go Application') {
             steps {
-                script {
-                    sh """ls -la"""
-                    sh """pwd"""
-                    withCredentials([
-                        string(credentialsId: ENV_FILE,
-                        variable: 'ENV_FILE_PATH')
-                    ]) {
-                        sh 'echo $ENV_FILE_PATH > src/.env'
+                dir('src') { // Change directory to /src
+                    script {
+                        // Build the Go application locally before Dockerizing
+                        sh 'go mod download'
+                        sh 'go build -o main .'
                     }
                 }
             }
@@ -74,31 +66,4 @@ pipeline {
             }
         }
 
-        stage('Deploy to Server') {
-            steps {
-                script {
-                    // Pass environment file to Docker
-                    sh """
-                    docker run -d --name ${DOCKER_IMAGE_NAME} \
-                    -p ${DEPLOY_PORT}:80 \
-                    ${DOCKER_IMAGE_NAME}:${env.BUILD_ID}
-                    """
-
-                    sh """docker exec -i ${DOCKER_IMAGE_NAME} bash"""
-                    sh """ls src"""
-                    sh """pwd"""
-
-                }
-            }
-        }
-    }
-    
-    post {
-        success {
-            echo 'Build and deploy successful!'
-        }
-        failure {
-            echo 'Build or deploy failed.'
-        }
-    }
-}
+        stage('Deploy to Server')​⬤

@@ -1,42 +1,32 @@
-# Use PHP 8.3 image with FPM
-FROM php:8.3-fpm
+# Use the official Golang image to create a build artifact.
+FROM golang:1.20-alpine AS builder
 
-# Install necessary dependencies, including PostgreSQL extension, zip extension, and unzip
-RUN apt-get update && \
-    apt-get install -y \
-    libpq-dev \
-    libzip-dev \
-    unzip \
-    nano \
-    python3-pip && \
-    docker-php-ext-install pgsql pdo_pgsql zip && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Set the Current Working Directory inside the container
+WORKDIR /app
 
-# Install the PHP zip extension
-RUN docker-php-ext-install zip
+# Copy go.mod and go.sum files
+COPY src/go.mod src/go.sum ./
 
-# Copy your web files
-COPY src /var/www/html
-# COPY src/.env.example /var/www/html/.env
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed.
+RUN go mod download
 
-# Set working directory
-WORKDIR /var/www/html
+# Copy the source from the src directory to the Working Directory inside the container
+COPY src/ .
 
-# Install Composer
-RUN curl -sS https://getcomposer.org/installer | php
-RUN mv composer.phar /usr/local/bin/composer
+# Build the Go app
+RUN go build -o main .
 
-# Install Laravel dependencies
-RUN composer install
+# Start a new stage from scratch
+FROM alpine:latest
 
-RUN php artisan key:generate
+# Set the Current Working Directory inside the container
+WORKDIR /root/
 
-# Ensure correct permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
+# Copy the Pre-built binary file from the previous stage
+COPY --from=builder /app/main .
 
-# Expose ports
-EXPOSE 80
+# Expose port 8000 to the outside world
+EXPOSE 8000
 
-CMD ["php", "-S", "0.0.0.0:80", "-t", "/var/www/html/public"]
+# Command to run the executable
+CMD ["./main"]
