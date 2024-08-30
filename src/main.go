@@ -1,17 +1,13 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	setupport "hms-backend-go-gin/infra/setup_port"
+	"hms-backend-go-gin/routes"
 )
 
 func main() {
-	router := gin.Default()
+	app := routes.SetupRouter()
+	port := setupport.SetupPort()
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "Hello World",
-		})
-	})
-
-	router.Run(":7000")
+	app.Run(":" + port)
 }
