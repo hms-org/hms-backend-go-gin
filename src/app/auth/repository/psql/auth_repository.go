@@ -1,7 +1,7 @@
 package psql
 
-type Repository interface {
-}
+// type Repository interface {
+// }
 
-type repository struct {
-}
+// type repository struct {
+// }

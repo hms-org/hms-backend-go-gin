@@ -1,0 +1,17 @@
+linters:
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+  disable:
+    - gocyclo
+    - golint
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  golint:
+    min-confidence: 0.8
+
+run:
+  dirs: ./srcc

@@ -1,7 +1,7 @@
 package usecase
 
-type AuthUseCase interface {
-}
+// type AuthUseCase interface {
+// }
 
-type usecase struct {
-}
+// type usecase struct {
+// }
