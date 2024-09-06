@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	app := routes.SetupRouter()
+	ap := routes.SetupRouter()
 	port := setupport.SetupPort()
 
 	if err := app.Run(":" + port); err != nil {
