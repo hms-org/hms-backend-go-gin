@@ -12,6 +12,3 @@ linters-settings:
     check-type-assertions: true
   golint:
     min-confidence: 0.8
-
-run:
-  dirs: ./srcc
